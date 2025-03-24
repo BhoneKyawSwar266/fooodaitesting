@@ -23,7 +23,7 @@
 
         <!-- Upload Section -->
         <div class="upload-section mb-8 bg-white p-6 rounded-xl shadow-lg">
-            <form id="upload-form" action="{{ route('predict') }}" method="POST" enctype="multipart/form-data">
+            <form id="upload-form" action="{{ secure_url(route('predict')) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="file" id="image-input" name="image" accept="image/*" required class="hidden">
                 <button type="button" id="choose-file-btn" class="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105">
@@ -155,7 +155,7 @@
             const formData = new FormData(e.target);
 
             try {
-                const response = await fetch('{{ route("predict") }}', {
+                const response = await fetch('https://24.144.117.151:5000/predict', {
                     method: 'POST',
                     body: formData,
                     headers: {
