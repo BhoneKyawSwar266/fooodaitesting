@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Recognition AI</title>
+    <title>Food Recognition Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .loader {
@@ -21,167 +21,148 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 font-sans min-h-screen flex items-center justify-center">
-    <div class="container mx-auto px-4 py-8 max-w-lg">
-        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8 bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
-            AI Food Analyzer
-        </h1>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto px-4 py-8 max-w-md">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Food Recognition Prototype</h1>
 
         <!-- Camera Section -->
-        <div class="camera-section mb-8 bg-white p-6 rounded-xl shadow-lg">
-            <button id="start-camera" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105">
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <button id="start-camera" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">
                 Open Camera
             </button>
-            <video id="camera-preview" class="hidden w-full max-w-md mx-auto border-2 border-gray-200 rounded-lg mt-4" autoplay playsinline></video>
-            <button id="capture-btn" class="hidden w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-lg mt-4 transition duration-300 transform hover:scale-105">
-                Capture Image
+            <video id="camera-preview" class="hidden w-full mt-4 rounded-lg border-2 border-gray-200"></video>
+            <button id="capture-btn" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg mt-4 transition">
+                Capture
             </button>
         </div>
 
         <!-- Upload Section -->
-        <div class="upload-section mb-8 bg-white p-6 rounded-xl shadow-lg">
-            <form id="upload-form" class="flex flex-col">
-                <input type="file" id="image-input" name="image" accept="image/*" required class="hidden">
-                <button type="button" id="choose-file-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105">
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <form id="upload-form" class="space-y-4">
+                <input type="file" id="image-input" accept="image/*" class="hidden">
+                <button type="button" id="choose-file-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition">
                     Choose File
                 </button>
-                <div id="preview-container" class="mt-4 flex flex-col items-center"></div>
-                <button type="submit" id="submit-btn" class="hidden w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105 mt-4">
-                    Analyze Food
+                <div id="preview-container" class="mt-4"></div>
+                <button type="submit" id="submit-btn" class="hidden w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition">
+                    Analyze
                 </button>
-                <div id="loader" class="hidden mt-4">
+                <div id="loader" class="hidden text-center py-4">
                     <div class="loader"></div>
-                    <p class="text-center mt-2 text-gray-600">Analyzing your food...</p>
+                    <p class="text-gray-600 mt-2">Analyzing...</p>
                 </div>
-                <div id="error-alert" class="hidden mt-4 p-4 bg-red-100 rounded-lg text-red-700"></div>
             </form>
         </div>
 
-        <!-- Result Section -->
-        <div id="result" class="hidden bg-white p-6 rounded-xl shadow-lg">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Analysis Result</h2>
-            <div id="prediction-text" class="text-gray-600 bg-gray-50 p-4 rounded-lg mb-4"></div>
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Nutrition Details</h2>
-            <div id="nutrition-text" class="text-gray-600 bg-gray-50 p-4 rounded-lg"></div>
-            <button id="reset-btn" class="w-full mt-6 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition duration-300">
-                Start Over
+        <!-- Results Section -->
+        <div id="result" class="hidden bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Results</h2>
+            <div id="prediction-text" class="mb-4 p-4 bg-gray-50 rounded"></div>
+            <div id="nutrition-text" class="p-4 bg-gray-50 rounded"></div>
+            <button id="retry-btn" class="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition">
+                Try Again
             </button>
         </div>
+
+        <!-- Error Alert -->
+        <div id="error-alert" class="hidden fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
     </div>
 
     <script>
         // DOM Elements
-        const elements = {
-            cameraPreview: document.getElementById('camera-preview'),
-            startCameraBtn: document.getElementById('start-camera'),
-            captureBtn: document.getElementById('capture-btn'),
-            imageInput: document.getElementById('image-input'),
-            chooseFileBtn: document.getElementById('choose-file-btn'),
-            submitBtn: document.getElementById('submit-btn'),
-            resultDiv: document.getElementById('result'),
-            predictionText: document.getElementById('prediction-text'),
-            nutritionText: document.getElementById('nutrition-text'),
-            previewContainer: document.getElementById('preview-container'),
-            loader: document.getElementById('loader'),
-            errorAlert: document.getElementById('error-alert'),
-            resetBtn: document.getElementById('reset-btn'),
-            uploadForm: document.getElementById('upload-form')
-        };
+        const cameraPreview = document.getElementById('camera-preview');
+        const startCameraBtn = document.getElementById('start-camera');
+        const captureBtn = document.getElementById('capture-btn');
+        const imageInput = document.getElementById('image-input');
+        const chooseFileBtn = document.getElementById('choose-file-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultDiv = document.getElementById('result');
+        const predictionText = document.getElementById('prediction-text');
+        const nutritionText = document.getElementById('nutrition-text');
+        const previewContainer = document.getElementById('preview-container');
+        const loader = document.getElementById('loader');
+        const errorAlert = document.getElementById('error-alert');
+        const retryBtn = document.getElementById('retry-btn');
 
-        // State Management
         let cameraStream = null;
-        let currentFile = null;
 
         // API Configuration
-        const API_ENDPOINT = window.location.protocol === 'https:'
-            ? 'https://your-production-domain.com/predict'
-            : 'http://24.144.117.151:5000/predict';
+        const API_URL = 'https://24.144.117.151:5000/predict';
+        const CSRF_TOKEN = '{{ csrf_token() }}';
 
         // Camera Handling
-        elements.startCameraBtn.addEventListener('click', async () => {
+        startCameraBtn.addEventListener('click', async () => {
             try {
                 if (cameraStream) {
                     cameraStream.getTracks().forEach(track => track.stop());
                 }
 
                 const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
+                    video: { facingMode: 'environment', width: 1280, height: 720 }
                 };
 
                 cameraStream = await navigator.mediaDevices.getUserMedia(constraints)
                     .catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
 
-                elements.cameraPreview.srcObject = cameraStream;
-                elements.cameraPreview.classList.remove('hidden');
-                elements.captureBtn.classList.remove('hidden');
-                elements.chooseFileBtn.classList.add('hidden');
+                cameraPreview.srcObject = cameraStream;
+                cameraPreview.classList.remove('hidden');
+                captureBtn.classList.remove('hidden');
+                chooseFileBtn.classList.add('hidden');
                 hideError();
             } catch (error) {
                 showError(`Camera Error: ${error.message}`);
             }
         });
 
-        // Capture Image
-        elements.captureBtn.addEventListener('click', () => {
+        // Image Capture
+        captureBtn.addEventListener('click', () => {
             const canvas = document.createElement('canvas');
-            canvas.width = elements.cameraPreview.videoWidth;
-            canvas.height = elements.cameraPreview.videoHeight;
-            canvas.getContext('2d').drawImage(elements.cameraPreview, 0, 0);
-
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                elements.cameraPreview.srcObject = null;
-                elements.cameraPreview.classList.add('hidden');
-                elements.captureBtn.classList.add('hidden');
-            }
+            canvas.width = cameraPreview.videoWidth;
+            canvas.height = cameraPreview.videoHeight;
+            canvas.getContext('2d').drawImage(cameraPreview, 0, 0);
 
             canvas.toBlob(blob => {
-                currentFile = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+                imageInput.files = createFileList(blob);
                 showPreview(blob);
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraPreview.classList.add('hidden');
+                captureBtn.classList.add('hidden');
             }, 'image/jpeg', 0.9);
         });
 
         // File Handling
-        elements.chooseFileBtn.addEventListener('click', () => elements.imageInput.click());
-        elements.imageInput.addEventListener('change', () => {
-            if (elements.imageInput.files.length > 0) {
-                currentFile = elements.imageInput.files[0];
-                showPreview(URL.createObjectURL(currentFile));
+        chooseFileBtn.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', () => {
+            if (imageInput.files.length > 0) {
+                showPreview(URL.createObjectURL(imageInput.files[0]));
             }
         });
 
         // Form Submission
-        elements.uploadForm.addEventListener('submit', async (e) => {
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentFile) return;
+            if (!imageInput.files.length) return;
 
             showLoading(true);
             hideError();
-            elements.resultDiv.classList.add('hidden');
+            resultDiv.classList.add('hidden');
 
             try {
                 const formData = new FormData();
-                formData.append('image', currentFile);
-                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('image', imageInput.files[0]);
+                formData.append('_token', CSRF_TOKEN);
 
-                const response = await fetchWithTimeout(API_ENDPOINT, {
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     body: formData,
                     headers: { 'Accept': 'application/json' },
                     credentials: 'omit'
-                }, 15000); // 15 second timeout
+                });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `Server error: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                 const data = await response.json();
-                displayResults(data);
+                showResults(data);
             } catch (error) {
                 handleApiError(error);
             } finally {
@@ -189,105 +170,80 @@
             }
         });
 
-        // Reset Functionality
-        elements.resetBtn.addEventListener('click', () => {
-            elements.uploadForm.reset();
-            elements.previewContainer.innerHTML = '';
-            elements.resultDiv.classList.add('hidden');
-            elements.startCameraBtn.classList.remove('hidden');
-            elements.chooseFileBtn.classList.remove('hidden');
-            currentFile = null;
+        // Retry Functionality
+        retryBtn.addEventListener('click', () => {
+            resultDiv.classList.add('hidden');
+            previewContainer.innerHTML = '';
+            imageInput.value = '';
+            startCameraBtn.classList.remove('hidden');
+            chooseFileBtn.classList.remove('hidden');
         });
 
         // Helper Functions
+        function createFileList(blob) {
+            const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            return dataTransfer.files;
+        }
+
         function showPreview(imageSrc) {
-            elements.previewContainer.innerHTML = '';
+            previewContainer.innerHTML = '';
             const img = document.createElement('img');
-            img.src = imageSrc instanceof Blob ? URL.createObjectURL(imageSrc) : imageSrc;
-            img.classList.add('w-full', 'max-w-md', 'rounded-lg', 'shadow-md');
-            elements.previewContainer.appendChild(img);
-            elements.submitBtn.classList.remove('hidden');
+            img.src = typeof imageSrc === 'string' ? imageSrc : URL.createObjectURL(imageSrc);
+            img.classList.add('w-full', 'h-48', 'object-cover', 'rounded-lg');
+            previewContainer.appendChild(img);
+            submitBtn.classList.remove('hidden');
         }
 
-        async function fetchWithTimeout(url, options, timeout) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-            try {
-                const response = await fetch(url, {
-                    ...options,
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                return response;
-            } catch (error) {
-                clearTimeout(timeoutId);
-                throw error;
-            }
+        function showLoading(show) {
+            loader.classList.toggle('hidden', !show);
+            submitBtn.classList.toggle('hidden', show);
         }
 
-        function displayResults(data) {
-            // Prediction Display
-            elements.predictionText.innerHTML = `
-                <p class="font-semibold text-lg">${data.prediction?.predicted_label || 'Unknown Food'}</p>
+        function showResults(data) {
+            predictionText.innerHTML = `
+                <p class="font-semibold">${data.prediction?.predicted_label || 'Unknown Food'}</p>
                 <div class="mt-2 space-y-1">
-                    ${(data.prediction?.probabilities || [])
-                        .map((prob, i) => `
-                            <div class="flex justify-between">
-                                <span>${['Fried Potatoes', 'Fried Rice', 'Pizza', 'Ice Cream'][i]}:</span>
-                                <span>${(prob * 100).toFixed(2)}%</span>
-                            </div>
-                        `).join('')}
+                    ${(data.prediction?.probabilities || []).map((p, i) => `
+                        <div class="flex justify-between">
+                            <span>${['Fried Potatoes', 'Fried Rice', 'Pizza', 'Ice Cream'][i]}</span>
+                            <span>${(p * 100).toFixed(2)}%</span>
+                        </div>
+                    `).join('')}
                 </div>
             `;
 
-            // Nutrition Display
-            elements.nutritionText.innerHTML = data.nutrition?.error ? `
+            nutritionText.innerHTML = data.nutrition?.error ? `
                 <div class="text-red-500">${data.nutrition.error}</div>
             ` : `
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-3 bg-blue-50 rounded">
-                        <p class="font-semibold">Calories</p>
-                        <p>${data.nutrition?.calories || 'N/A'}</p>
-                    </div>
-                    <div class="p-3 bg-green-50 rounded">
-                        <p class="font-semibold">Protein</p>
-                        <p>${data.nutrition?.protein || 'N/A'}</p>
-                    </div>
-                    <div class="p-3 bg-yellow-50 rounded">
-                        <p class="font-semibold">Carbs</p>
-                        <p>${data.nutrition?.total_carbohydrate?.value || 'N/A'}</p>
-                    </div>
-                    <div class="p-3 bg-red-50 rounded">
-                        <p class="font-semibold">Fat</p>
-                        <p>${data.nutrition?.total_fat?.value || 'N/A'}</p>
-                    </div>
+                <div class="space-y-2">
+                    <p><span class="font-semibold">Calories:</span> ${data.nutrition?.calories || 'N/A'}</p>
+                    <p><span class="font-semibold">Protein:</span> ${data.nutrition?.protein || 'N/A'}</p>
+                    <p><span class="font-semibold">Carbs:</span> ${data.nutrition?.total_carbohydrate?.value || 'N/A'}</p>
+                    <p><span class="font-semibold">Fat:</span> ${data.nutrition?.total_fat?.value || 'N/A'}</p>
                 </div>
             `;
 
-            elements.resultDiv.classList.remove('hidden');
+            resultDiv.classList.remove('hidden');
         }
 
         function handleApiError(error) {
             let message = 'Analysis failed. Please try again.';
-
-            if (error.name === 'AbortError') {
-                message = 'Request timed out. Please check your connection.';
-            } else if (error.message.includes('Failed to fetch')) {
-                message = 'Connection error. Ensure the server is running.';
+            if (error.message.includes('Failed to fetch')) {
+                message = `Connection error: Visit <a href="${API_URL}" target="_blank" class="underline">the API endpoint</a> first to accept the certificate`;
             }
-
-            elements.errorAlert.textContent = `${message} (${error.message})`;
-            elements.errorAlert.classList.remove('hidden');
+            showError(message);
         }
 
-        function showLoading(show) {
-            elements.loader.classList.toggle('hidden', !show);
-            elements.submitBtn.classList.toggle('hidden', show);
+        function showError(message) {
+            errorAlert.innerHTML = message;
+            errorAlert.classList.remove('hidden');
+            setTimeout(() => errorAlert.classList.add('hidden'), 5000);
         }
 
         function hideError() {
-            elements.errorAlert.classList.add('hidden');
+            errorAlert.classList.add('hidden');
         }
     </script>
 </body>
