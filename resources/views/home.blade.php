@@ -65,30 +65,30 @@
                     stream.getTracks().forEach(track => track.stop());
                 }
 
-                // First, try to open the front camera
-                const frontConstraints = {
+                // First, try to open the back camera (rear camera)
+                const backConstraints = {
                     video: {
-                        facingMode: { exact: 'user' }, // Strictly use front camera
+                        facingMode: { exact: 'environment' }, // Strictly use back camera
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     }
                 };
 
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia(frontConstraints);
-                    console.log('Using front camera');
-                } catch (frontError) {
-                    console.warn('Front camera not available:', frontError);
-                    // If front camera fails, try the back camera
-                    const backConstraints = {
+                    stream = await navigator.mediaDevices.getUserMedia(backConstraints);
+                    console.log('Using back camera');
+                } catch (backError) {
+                    console.warn('Back camera not available:', backError);
+                    // If back camera fails, fall back to the front camera
+                    const frontConstraints = {
                         video: {
-                            facingMode: { exact: 'environment' }, // Strictly use back camera
+                            facingMode: { exact: 'user' }, // Strictly use front camera
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         }
                     };
-                    stream = await navigator.mediaDevices.getUserMedia(backConstraints);
-                    console.log('Using back camera as fallback');
+                    stream = await navigator.mediaDevices.getUserMedia(frontConstraints);
+                    console.log('Using front camera as fallback');
                 }
 
                 // Set the video source to the camera stream
