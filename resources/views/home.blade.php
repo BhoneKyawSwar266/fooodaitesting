@@ -60,14 +60,38 @@
 
         startCameraBtn.addEventListener('click', async () => {
             try {
-                const constraints = {
+                // Stop any existing stream
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
+                // First, try to open the front camera
+                const frontConstraints = {
                     video: {
-                        facingMode: { ideal: 'user' }, // Prefer front camera
-                        width: { ideal: 1280 }, // Optional: improve quality
+                        facingMode: { exact: 'user' }, // Strictly use front camera
+                        width: { ideal: 1280 },
                         height: { ideal: 720 }
                     }
                 };
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(frontConstraints);
+                    console.log('Using front camera');
+                } catch (frontError) {
+                    console.warn('Front camera not available:', frontError);
+                    // If front camera fails, try the back camera
+                    const backConstraints = {
+                        video: {
+                            facingMode: { exact: 'environment' }, // Strictly use back camera
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    };
+                    stream = await navigator.mediaDevices.getUserMedia(backConstraints);
+                    console.log('Using back camera as fallback');
+                }
+
+                // Set the video source to the camera stream
                 cameraPreview.srcObject = stream;
                 cameraPreview.classList.remove('hidden');
                 captureBtn.classList.remove('hidden');
