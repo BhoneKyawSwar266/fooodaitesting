@@ -13,36 +13,33 @@ class HomeController extends Controller
     }
 
     public function predict(Request $request)
-    {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+{
+    $request->validate([
+        'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
 
-        try {
-            $response = Http::attach(
-                'image', file_get_contents($request->file('image')), 'image.jpg'
-            )->post('http://24.144.117.151:5000/predict');
+    try {
+        $response = Http::attach(
+            'image', file_get_contents($request->file('image')), 'image.jpg'
+        )->withOptions(['verify' => false])
+        ->post('https://24.144.117.151:5000/predict');
 
-            if ($response->failed()) {
-                return response()->json(['error' => 'Prediction API request failed'], 500);
-            }
-
-            $prediction = $response->json();
-            // Extract the predicted label from the nested structure
-            $foodLabel = strtolower($prediction['predicted_label'] ?? 'unknown');
-
-            // Get nutritional data based on the label
-            $nutritionData = $this->getNutritionData($foodLabel);
-
-            return response()->json([
-                'prediction' => $prediction, // Return full prediction including probabilities
-                'nutrition' => $nutritionData,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+        if ($response->failed()) {
+            return response()->json(['error' => 'Prediction API request failed'], 500);
         }
-    }
 
+        $prediction = $response->json();
+        $foodLabel = strtolower($prediction['predicted_label'] ?? 'unknown');
+        $nutritionData = $this->getNutritionData($foodLabel);
+
+        return response()->json([
+            'prediction' => $prediction,
+            'nutrition' => $nutritionData,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+    }
+}
     private function getNutritionData($label)
     {
         $nutrition = [
