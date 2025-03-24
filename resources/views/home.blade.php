@@ -160,7 +160,8 @@
                     body: formData,
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
+                    },
+                     credentials: 'omit',
                 });
 
                 if (!response.ok) throw new Error('API request failed');
