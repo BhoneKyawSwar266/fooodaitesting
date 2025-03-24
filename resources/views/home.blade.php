@@ -23,7 +23,7 @@
 
         <!-- Upload Section -->
         <div class="upload-section mb-8 bg-white p-6 rounded-xl shadow-lg">
-            <form id="upload-form" action="{{ secure_url(route('predict')) }}" method="POST" enctype="multipart/form-data">
+            <form id="upload-form" action="{{ route('predict') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="file" id="image-input" name="image" accept="image/*" required class="hidden">
                 <button type="button" id="choose-file-btn" class="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105">
@@ -58,17 +58,51 @@
         const previewContainer = document.getElementById('preview-container');
         let stream;
 
+        // API endpoints
+        const apiUrl = 'https://24.144.117.151:5000/predict';
+        const fallbackUrl = 'http://24.144.117.151:5000/predict';
+
+        // Safe fetch with HTTPS/HTTP fallback
+        async function safeFetch(formData) {
+            try {
+                // First try with HTTPS
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'omit'
+                });
+
+                if (!response.ok) throw new Error('HTTPS request failed');
+                return await response.json();
+
+            } catch (httpsError) {
+                console.warn('HTTPS failed, falling back to HTTP');
+                // Fallback to HTTP
+                const httpResponse = await fetch(fallbackUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+                return await httpResponse.json();
+            }
+        }
+
+        // Camera handling (unchanged)
         startCameraBtn.addEventListener('click', async () => {
             try {
-                // Stop any existing stream
                 if (stream) {
                     stream.getTracks().forEach(track => track.stop());
                 }
 
-                // First, try to open the back camera (rear camera)
                 const backConstraints = {
                     video: {
-                        facingMode: { exact: 'environment' }, // Strictly use back camera
+                        facingMode: { exact: 'environment' },
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     }
@@ -76,22 +110,17 @@
 
                 try {
                     stream = await navigator.mediaDevices.getUserMedia(backConstraints);
-                    console.log('Using back camera');
                 } catch (backError) {
-                    console.warn('Back camera not available:', backError);
-                    // If back camera fails, fall back to the front camera
                     const frontConstraints = {
                         video: {
-                            facingMode: { exact: 'user' }, // Strictly use front camera
+                            facingMode: { exact: 'user' },
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         }
                     };
                     stream = await navigator.mediaDevices.getUserMedia(frontConstraints);
-                    console.log('Using front camera as fallback');
                 }
 
-                // Set the video source to the camera stream
                 cameraPreview.srcObject = stream;
                 cameraPreview.classList.remove('hidden');
                 captureBtn.classList.remove('hidden');
@@ -150,22 +179,13 @@
             }
         });
 
+        // Form submission with safeFetch
         document.getElementById('upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
 
             try {
-                const response = await fetch('https://24.144.117.151:5000/predict', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                     credentials: 'omit',
-                });
-
-                if (!response.ok) throw new Error('API request failed');
-                const data = await response.json();
+                const data = await safeFetch(formData);
 
                 if (data.error) {
                     predictionText.textContent = 'Error: ' + data.error;
